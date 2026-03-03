@@ -1,0 +1,27 @@
+.shop-auth-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.auth-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.auth-step-content {
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.auth-step-content ul {
+  margin-left: 20px;
+  margin-bottom: 10px;
+}
+
+.auth-step-content ul li {
+  margin-bottom: 8px;
+  color: rgba(0, 0, 0, 0.65);
+}

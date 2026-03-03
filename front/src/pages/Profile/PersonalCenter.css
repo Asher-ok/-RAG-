@@ -1,0 +1,68 @@
+.avatar-uploader {
+  position: relative;
+  display: inline-block;
+}
+
+.avatar-uploader:hover {
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.avatar-uploader .ant-upload {
+  border: none;
+  background: transparent;
+}
+
+.avatar-uploader .ant-upload:hover {
+  border: none;
+}
+
+.personal-center-container {
+  padding: 24px;
+}
+
+.user-info-card {
+  text-align: center;
+  padding: 24px;
+}
+
+.user-info-card h3 {
+  margin: 16px 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.user-info-card .ant-tag {
+  margin-top: 8px;
+}
+
+.info-card-extra {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.permission-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.permission-tags .ant-tag {
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .personal-center-container {
+    padding: 16px;
+  }
+  
+  .personal-center-container > div {
+    flex-direction: column;
+  }
+  
+  .personal-center-container .ant-card:first-child {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+}
