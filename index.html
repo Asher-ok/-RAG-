@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D地球用户分布</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #ffffff;
+            overflow: hidden;
+        }
+        
+        .container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            padding: 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 300;
+            color: #ffd700;
+            letter-spacing: 2px;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            position: relative;
+        }
+        
+        .earth-container {
+            flex: 1;
+            position: relative;
+        }
+        
+        #earth-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .sidebar {
+            width: 320px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(15px);
+            border-left: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            overflow-y: auto;
+        }
+        
+        .sidebar-section {
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+            padding-bottom: 20px;
+        }
+        
+        .sidebar-section h2 {
+            font-size: 16px;
+            font-weight: 400;
+            color: #ffd700;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+        
+        .city-info {
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .city-info h3 {
+            font-size: 14px;
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        
+        .city-info p {
+            font-size: 12px;
+            color: #cccccc;
+            margin-bottom: 5px;
+        }
+        
+        .brand-discovery {
+            text-align: center;
+        }
+        
+        .brand-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 10px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #000;
+            font-size: 24px;
+        }
+        
+        .brand-name {
+            font-size: 14px;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+        
+        .brand-tagline {
+            font-size: 12px;
+            color: #cccccc;
+        }
+        
+        .popularity-ranking {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+        
+        .ranking-number {
+            width: 20px;
+            height: 20px;
+            background: #ffd700;
+            color: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .ranking-city {
+            flex: 1;
+            font-size: 12px;
+        }
+        
+        .ranking-users {
+            font-size: 12px;
+            color: #ffd700;
+        }
+        
+        .new-products {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .product-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 12px;
+            border-left: 3px solid #ffd700;
+        }
+        
+        .product-name {
+            font-size: 12px;
+            font-weight: 400;
+            margin-bottom: 5px;
+        }
+        
+        .product-price {
+            font-size: 14px;
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        .glow {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, rgba(255,215,0,0.8) 0%, rgba(255,215,0,0) 70%);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.8;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.4;
+            }
+            100% {
+                transform: scale(0.8);
+                opacity: 0.8;
+            }
+        }
+        
+        .footer {
+            padding: 10px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            border-top: 1px solid rgba(255, 215, 0, 0.3);
+            font-size: 12px;
+            color: #cccccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>全球用户分布</h1>
+        </div>
+        <div class="main-content">
+            <div class="earth-container">
+                <canvas id="earth-canvas"></canvas>
+            </div>
+            <div class="sidebar">
+                <div class="sidebar-section">
+                    <h2>城市信息</h2>
+                    <div class="city-info" id="cityInfo">
+                        <h3 id="cityName">北京</h3>
+                        <p>用户数量: <span id="userCount">12,580</span></p>
+                        <p>活跃度: <span id="activity">98%</span></p>
+                        <p>平均消费: <span id="avgSpend">¥2,850</span></p>
+                    </div>
+                </div>
+                <div class="sidebar-section">
+                    <h2>随机品牌</h2>
+                    <div class="brand-discovery">
+                        <div class="brand-logo" id="brandLogo">L</div>
+                        <div class="brand-name" id="brandName">LUXE</div>
+                        <div class="brand-tagline" id="brandTagline">奢华生活方式</div>
+                    </div>
+                </div>
+                <div class="sidebar-section">
+                    <h2>人气榜</h2>
+                    <div class="popularity-ranking" id="popularityRanking">
+                        <!-- 动态生成排名 -->
+                    </div>
+                </div>
+                <div class="sidebar-section">
+                    <h2>新品展示</h2>
+                    <div class="new-products">
+                        <div class="product-item">
+                            <div class="product-name">限量版黑金手包</div>
+                            <div class="product-price">¥12,800</div>
+                        </div>
+                        <div class="product-item">
+                            <div class="product-name">高级定制西装</div>
+                            <div class="product-price">¥8,900</div>
+                        </div>
+                        <div class="product-item">
+                            <div class="product-name">奢华腕表</div>
+                            <div class="product-price">¥25,600</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            © 2026 高端品牌数据可视化
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // 城市数据
+        const cities = [
+            { name: '北京', lat: 39.9042, lng: 116.4074, users: 12580, activity: 98, avgSpend: 2850 },
+            { name: '上海', lat: 31.2304, lng: 121.4737, users: 15230, activity: 99, avgSpend: 3120 },
+            { name: '深圳', lat: 22.5431, lng: 114.0579, users: 10850, activity: 97, avgSpend: 2680 },
+            { name: '广州', lat: 23.1291, lng: 113.2644, users: 9760, activity: 96, avgSpend: 2450 },
+            { name: '杭州', lat: 30.2741, lng: 120.1551, users: 8420, activity: 95, avgSpend: 2280 },
+            { name: '纽约', lat: 40.7128, lng: -74.0060, users: 18900, activity: 99, avgSpend: 3500 },
+            { name: '伦敦', lat: 51.5074, lng: -0.1278, users: 14300, activity: 98, avgSpend: 3200 },
+            { name: '东京', lat: 35.6762, lng: 139.6503, users: 16700, activity: 99, avgSpend: 3350 },
+            { name: '巴黎', lat: 48.8566, lng: 2.3522, users: 12800, activity: 97, avgSpend: 3400 },
+            { name: '悉尼', lat: -33.8688, lng: 151.2093, users: 9200, activity: 96, avgSpend: 3000 }
+        ];
+        
+        // 品牌数据
+        const brands = [
+            { name: 'LUXE', tagline: '奢华生活方式', logo: 'L' },
+            { name: 'ELITE', tagline: '精英之选', logo: 'E' },
+            { name: 'PREMIER', tagline: '顶级品质', logo: 'P' },
+            { name: 'EXQUISITE', tagline: '精致生活', logo: 'X' },
+            { name: 'LUMIÈRE', tagline: '光之优雅', logo: 'L' }
+        ];
+        
+        // 初始化场景
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('earth-canvas'), antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth - 320, window.innerHeight - 100);
+        renderer.setClearColor(0x000000, 0);
+        
+        // 创建地球
+        const geometry = new THREE.SphereGeometry(1, 32, 32);
+        const textureLoader = new THREE.TextureLoader();
+        
+        // 使用高质量地球纹理
+        const earthTexture = textureLoader.load('https://threejs.org/examples/textures/land_ocean_ice_cloud_2048.jpg', function() {
+            console.log('地球纹理加载成功');
+        }, undefined, function(error) {
+            console.error('地球纹理加载失败:', error);
+        });
+        
+        const material = new THREE.MeshPhongMaterial({ 
+            map: earthTexture,
+            emissive: new THREE.Color(0x111111),
+            emissiveIntensity: 0.2,
+            specular: new THREE.Color(0x333333),
+            shininess: 10
+        });
+        const earth = new THREE.Mesh(geometry, material);
+        scene.add(earth);
+        
+        // 城市灯光数据 - 更接近真实分布
+        const cityLights = [
+            // 亚洲
+            { lat: 39.9042, lng: 116.4074, intensity: 1.0 }, // 北京
+            { lat: 31.2304, lng: 121.4737, intensity: 1.0 }, // 上海
+            { lat: 22.5431, lng: 114.0579, intensity: 0.8 }, // 深圳
+            { lat: 23.1291, lng: 113.2644, intensity: 0.7 }, // 广州
+            { lat: 35.6762, lng: 139.6503, intensity: 0.9 }, // 东京
+            { lat: 37.5665, lng: 126.9780, intensity: 0.7 }, // 首尔
+            { lat: 1.3521, lng: 103.8198, intensity: 0.6 }, // 新加坡
+            { lat: 19.0760, lng: 72.8777, intensity: 0.5 }, // 孟买
+            { lat: 28.6139, lng: 77.2090, intensity: 0.4 }, // 德里
+            { lat: 30.0444, lng: 31.2357, intensity: 0.3 }, // 开罗
+            
+            // 欧洲
+            { lat: 51.5074, lng: -0.1278, intensity: 0.8 }, // 伦敦
+            { lat: 48.8566, lng: 2.3522, intensity: 0.7 }, // 巴黎
+            { lat: 52.5200, lng: 13.4050, intensity: 0.6 }, // 柏林
+            { lat: 41.9028, lng: 12.4964, intensity: 0.5 }, // 罗马
+            { lat: 55.7558, lng: 37.6173, intensity: 0.6 }, // 莫斯科
+            
+            // 北美
+            { lat: 40.7128, lng: -74.0060, intensity: 0.9 }, // 纽约
+            { lat: 34.0522, lng: -118.2437, intensity: 0.8 }, // 洛杉矶
+            { lat: 41.8781, lng: -87.6298, intensity: 0.6 }, // 芝加哥
+            { lat: 29.7604, lng: -95.3698, intensity: 0.5 }, // 休斯顿
+            { lat: 49.2827, lng: -123.1207, intensity: 0.4 }, // 温哥华
+            
+            // 南美
+            { lat: -23.5505, lng: -46.6333, intensity: 0.6 }, // 圣保罗
+            { lat: -33.4489, lng: -70.6693, intensity: 0.5 }, // 圣地亚哥
+            { lat: -22.9068, lng: -43.1729, intensity: 0.4 }, // 里约热内卢
+            
+            // 大洋洲
+            { lat: -33.8688, lng: 151.2093, intensity: 0.6 }, // 悉尼
+            { lat: -41.2865, lng: 174.7762, intensity: 0.4 }, // 惠灵顿
+            
+            // 更多城市灯光
+            { lat: 30.5928, lng: 114.3055, intensity: 0.5 }, // 武汉
+            { lat: 30.5728, lng: 104.0668, intensity: 0.5 }, // 成都
+            { lat: 29.4316, lng: 106.9123, intensity: 0.5 }, // 重庆
+            { lat: 34.3416, lng: 108.9398, intensity: 0.4 }, // 西安
+            { lat: 32.0603, lng: 118.7969, intensity: 0.4 }, // 南京
+            { lat: 36.0611, lng: 120.3826, intensity: 0.4 }, // 青岛
+            { lat: 24.4798, lng: 118.0819, intensity: 0.4 }, // 厦门
+            { lat: 28.2278, lng: 112.9388, intensity: 0.4 }, // 长沙
+            { lat: 34.7466, lng: 113.6253, intensity: 0.4 }, // 郑州
+            { lat: 36.6512, lng: 117.1201, intensity: 0.4 }, // 济南
+            { lat: 26.0745, lng: 119.2965, intensity: 0.4 }, // 福州
+            { lat: 25.0389, lng: 102.7183, intensity: 0.3 }, // 昆明
+            { lat: 26.6470, lng: 106.6302, intensity: 0.3 }, // 贵阳
+            { lat: 22.8170, lng: 108.3665, intensity: 0.3 }, // 南宁
+            { lat: 45.8038, lng: 126.5349, intensity: 0.3 }, // 哈尔滨
+            { lat: 43.8168, lng: 125.3240, intensity: 0.3 }, // 长春
+            { lat: 41.8057, lng: 123.4315, intensity: 0.3 }, // 沈阳
+            { lat: 38.0428, lng: 114.5149, intensity: 0.3 }  // 石家庄
+        ];
+        
+        // 创建城市灯光
+        const cityMarkers = [];
+        
+        // 首先创建主要城市标记
+        cities.forEach(city => {
+            const lat = city.lat * Math.PI / 180;
+            const lng = city.lng * Math.PI / 180;
+            const radius = 1.01;
+            
+            const x = radius * Math.cos(lat) * Math.cos(lng);
+            const y = radius * Math.sin(lat);
+            const z = radius * Math.cos(lat) * Math.sin(lng);
+            
+            // 根据用户数量设置亮度
+            const userCount = city.users;
+            const maxUsers = Math.max(...cities.map(c => c.users));
+            const intensity = 0.6 + (userCount / maxUsers) * 0.4;
+            
+            // 创建灯光效果
+            const lightGeometry = new THREE.SphereGeometry(0.01, 8, 8);
+            const lightMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xffffcc,
+                transparent: true,
+                opacity: intensity
+            });
+            const light = new THREE.Mesh(lightGeometry, lightMaterial);
+            light.position.set(x, y, z);
+            light.userData = city;
+            scene.add(light);
+            cityMarkers.push(light);
+            
+            // 创建光晕效果
+            const glowGeometry = new THREE.SphereGeometry(0.02, 8, 8);
+            const glowMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xffff88,
+                transparent: true,
+                opacity: intensity * 0.3
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            glow.position.set(x, y, z);
+            scene.add(glow);
+            
+            // 灯光闪烁动画
+            function animateLight() {
+                requestAnimationFrame(animateLight);
+                const time = Date.now() * 0.001 + Math.random() * 3;
+                const pulse = 0.8 + Math.sin(time) * 0.2;
+                light.material.opacity = intensity * pulse;
+                glow.material.opacity = intensity * 0.3 * pulse;
+                glow.scale.set(pulse, pulse, pulse);
+            }
+            animateLight();
+        });
+        
+        // 添加更多城市灯光
+        cityLights.forEach(light => {
+            const lat = light.lat * Math.PI / 180;
+            const lng = light.lng * Math.PI / 180;
+            const radius = 1.01;
+            
+            const x = radius * Math.cos(lat) * Math.cos(lng);
+            const y = radius * Math.sin(lat);
+            const z = radius * Math.cos(lat) * Math.sin(lng);
+            
+            // 创建灯光效果
+            const lightGeometry = new THREE.SphereGeometry(0.008, 6, 6);
+            const lightMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xffffcc,
+                transparent: true,
+                opacity: light.intensity * 0.7
+            });
+            const lightMesh = new THREE.Mesh(lightGeometry, lightMaterial);
+            lightMesh.position.set(x, y, z);
+            scene.add(lightMesh);
+            
+            // 灯光闪烁动画
+            function animateLight() {
+                requestAnimationFrame(animateLight);
+                const time = Date.now() * 0.001 + Math.random() * 4;
+                const pulse = 0.7 + Math.sin(time) * 0.3;
+                lightMesh.material.opacity = light.intensity * 0.7 * pulse;
+            }
+            animateLight();
+        });
+        
+        // 添加环境光
+        const ambientLight = new THREE.AmbientLight(0x222222, 0.3);
+        scene.add(ambientLight);
+        
+        // 添加平行光
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 3, 5);
+        scene.add(directionalLight);
+        
+        // 相机位置
+        camera.position.set(2, 0.5, 2);
+        camera.lookAt(0, 0, 0);
+        
+        // 轨道控制器
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.enableZoom = true;
+        controls.enablePan = true;
+        
+        // 点击事件
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        
+        function onMouseClick(event) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / (rect.width)) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / (rect.height)) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            
+            const intersects = raycaster.intersectObjects(cityMarkers);
+            if (intersects.length > 0) {
+                const city = intersects[0].object.userData;
+                showCityInfo(city);
+            }
+        }
+        
+        function showCityInfo(city) {
+            const cityInfo = document.getElementById('cityInfo');
+            document.getElementById('cityName').textContent = city.name;
+            document.getElementById('userCount').textContent = city.users.toLocaleString();
+            document.getElementById('activity').textContent = city.activity + '%';
+            document.getElementById('avgSpend').textContent = '¥' + city.avgSpend.toLocaleString();
+            cityInfo.style.display = 'block';
+        }
+        
+        // 随机品牌
+        function randomBrand() {
+            const randomIndex = Math.floor(Math.random() * brands.length);
+            const brand = brands[randomIndex];
+            document.getElementById('brandLogo').textContent = brand.logo;
+            document.getElementById('brandName').textContent = brand.name;
+            document.getElementById('brandTagline').textContent = brand.tagline;
+        }
+        
+        // 生成人气榜
+        function generatePopularityRanking() {
+            const rankingContainer = document.getElementById('popularityRanking');
+            rankingContainer.innerHTML = '';
+            
+            const sortedCities = [...cities].sort((a, b) => b.users - a.users);
+            
+            sortedCities.slice(0, 10).forEach((city, index) => {
+                const rankingItem = document.createElement('div');
+                rankingItem.className = 'ranking-item';
+                rankingItem.innerHTML = `
+                    <div class="ranking-number">${index + 1}</div>
+                    <div class="ranking-city">${city.name}</div>
+                    <div class="ranking-users">${city.users.toLocaleString()}</div>
+                `;
+                rankingContainer.appendChild(rankingItem);
+            });
+        }
+        
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            earth.rotation.y += 0.001;
+            
+            controls.update();
+            
+            renderer.render(scene, camera);
+        }
+        
+        // 窗口大小调整
+        function onWindowResize() {
+            camera.aspect = (window.innerWidth - 320) / (window.innerHeight - 100);
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth - 320, window.innerHeight - 100);
+        }
+        
+        // 事件监听
+        window.addEventListener('click', onMouseClick);
+        window.addEventListener('resize', onWindowResize);
+        
+        // 初始化
+        animate();
+        randomBrand();
+        generatePopularityRanking();
+        
+        // 每10秒更换品牌
+        setInterval(randomBrand, 10000);
+        
+        console.log('3D地球初始化完成');
+    </script>
+</body>
+</html>
